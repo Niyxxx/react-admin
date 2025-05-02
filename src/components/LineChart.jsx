@@ -42,7 +42,7 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false, data }) =>
           },
         },
       }}
-      colors={isDashboard ? { datum: "color" } : { scheme: "nivo" }} // added
+      colors={[colors.blueAccent[500]]}
       margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
       xScale={{ type: "point" }}
       yScale={{

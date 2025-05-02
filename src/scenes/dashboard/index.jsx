@@ -9,12 +9,12 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import CloseIcon from "@mui/icons-material/Close";
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
-import GeographyChart from "../../components/GeographyChart";
+import NutritionScoreBarChart from "../../components/NutritionScoreBarChart";
 import BarChart from "../../components/BarChart";
 import MealDurationChart from "../../components/MealDurationChart";
-import GlobalScoringBarChart from "../../components/GlobalScoringBarChart";
+import MobilityScoreBarChart from "../../components/MobilityScoreBarChart";
 import StatBox from "../../components/StatBox";
-import ProgressCircle from "../../components/ProgressCircle";
+import MonthlyMealsChart from "../../components/MonthlyMealsChart";
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
@@ -30,7 +30,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (analysisData?.scoring) {
       console.log("Données de scoring:", analysisData.scoring);
-      console.log("Données formatées:", getScoringData());
+      console.log("Données formatées:", getMobilityScoreData());
     }
   }, [analysisData]);
 
@@ -83,7 +83,9 @@ const Dashboard = () => {
         walking_speed: result.analysis_results.walking_speed || [],
         scoring: result.analysis_results.scoring,
         nutrition: result.analysis_results.nutrition,
-        meal_durations: result.analysis_results.meal_durations || []
+        meal_durations: result.analysis_results.meal_durations || [],
+        monthly_meals: result.analysis_results.monthly_meals || [],
+        nutrition_scores: result.analysis_results.nutrition?.raw || [] 
       });
 
       console.log("Données nutrition:", result.analysis_results.nutrition);
@@ -97,24 +99,24 @@ const Dashboard = () => {
     }
   };
   
-  const getScoringData = () => {
-    if (!analysisData?.scoring?.raw) return null;
+
+  {/*Scoring de mobilité à modifié*/}
+
+  const getMobilityScoreData = () => {
+    if (!analysisData?.scoring?.raw || !Array.isArray(analysisData.scoring.raw)) {
+      return null;
+    }
   
     return {
-      chart_data: analysisData.scoring.raw.map(item => ({
+      keys: ["value"],
+      data: analysisData.scoring.raw.map(item => ({
         period: item.period,
-        // Utilisez le score cumulé des transitions OU de la vitesse
-        score: (Number(item.cumulative_score_transitions) || 0) + 
-        (Number(item.cumulative_score_speed) || 0),
-        level: item.Level || 'Inconnu',
-        interpretation: item.Interpretation || '',
-        color: item.Level === "Danger" ? colors.redAccent[500] : 
-               item.Level === "Alerte" ? colors.orangeAccent[500] : 
-               colors.greenAccent[500]
+        level: item.Level,
+        interpretation: item.Interpretation
       }))
     };
   };
-  
+
   
   const getLineChartData = () => {
     if (!analysisData?.walking_speed || !Array.isArray(analysisData.walking_speed)) {
@@ -179,22 +181,46 @@ const Dashboard = () => {
       return null;
     }
   };
+
   
+  const getMonthlyMealsData = () => {
+    if (!analysisData?.monthly_meals || !Array.isArray(analysisData.monthly_meals)) {
+      return null;
+    }
+  
+    return {
+      keys: ["meals"],
+      data: analysisData.monthly_meals
+        .filter(item => item.month && item.meals_count !== undefined)
+        .map(item => ({
+          month: item.month,
+          meals: Number(item.meals_count) || 0
+        }))
+    };
+  };
+
+  const getNutritionScoreData = () => {
+    if (!analysisData?.nutrition_scores || !Array.isArray(analysisData.nutrition_scores)) {
+      return null;
+    }
+  
+    return {
+      keys: ["value"],
+      data: analysisData.nutrition_scores.map(item => ({
+        month_start: item.month_start,
+        classification: item.classification,
+        Snutrition: item.Snutrition,
+        interpretation: item.interpretation ,
+        color: item.classification === 'Normal' ? tokens(theme.palette.mode).greenAccent[500] :
+               item.classification === 'Alerte' ? tokens(theme.palette.mode).orangeAccent[500] :
+               tokens(theme.palette.mode).redAccent[500]
+      }))
+    };
+  };
     
 //-------------Donnnées de test------------------------------------------
 
 
-  // Modifier les données de test pour correspondre aux nouveaux niveaux
-  const testScoringData = {
-    chart_data: [
-      { period: "Jan", score: -4, level: "Danger", interpretation: "Déclin rapide" },
-      { period: "Feb", score: -2, level: "Danger", interpretation: "Déclin progressif" },
-      { period: "Mar", score: 0, level: "Alerte", interpretation: "Risque Déclin" },
-      { period: "Apr", score: 2, level: "Normal", interpretation: "Stable" },
-      { period: "May", score: 4, level: "Normal", interpretation: "Amélioration" },
-      { period: "Jun", score: 6, level: "Normal", interpretation: "Bonne progression" }
-    ]
-  };
 
   const handleClosePreview = () => {
     setOpenPreview(false);
@@ -428,7 +454,7 @@ const Dashboard = () => {
                 Vitesse de marche
               </Typography>
               <Typography
-                variant="h3"
+                variant="h4"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
@@ -480,22 +506,31 @@ const Dashboard = () => {
     </Box>
   </Box>
 
-        <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          p="30px"
-        >
-          <Typography variant="h5" fontWeight="600">
-            Score Global Mobilité
-          </Typography>
-          <Box height="250px" mt="-20px">
-            <GlobalScoringBarChart 
-              isDashboard={true}
-              data={getScoringData()} 
-            />
-          </Box>
-        </Box>
+  <Box
+  gridColumn="span 4"
+  gridRow="span 2"
+  backgroundColor={colors.primary[400]}
+  p="30px"
+>
+  <Typography
+    variant="h5"
+    fontWeight="600"
+    sx={{ padding: "0 0 20px 0" }}
+  >
+    Évaluation de la Mobilité
+  </Typography>
+  <Box height="250px" mt="-20px">
+    {getMobilityScoreData() ? (
+      <MobilityScoreBarChart isDashboard={true} data={getMobilityScoreData()} />
+    ) : (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+        <Typography variant="h6" color={colors.grey[300]}>
+          Aucune donnée disponible
+        </Typography>
+      </Box>
+    )}
+  </Box>
+</Box>
         {/* Exemple de composant à scroll bar on ne sait jamais
         <Box
           gridColumn="span 4"
@@ -563,14 +598,14 @@ const Dashboard = () => {
   >
     <Box>
       <Typography
-        variant="h4"
+        variant="h5"
         fontWeight="600"
         color={colors.grey[100]}
       >
         Durée moyenne des repas
       </Typography>
       <Typography
-                variant="h3"
+                variant="h5"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
@@ -590,47 +625,55 @@ const Dashboard = () => {
     )}
   </Box>
 </Box>
-        <Box
+<Box
   gridColumn="span 4"
   gridRow="span 2"
   backgroundColor={colors.primary[400]}
 >
-    <Typography
-      variant="h5"
-      fontWeight="600"
-      sx={{ padding: "30px 30px 0 30px" }}
-    >
-      Nombre de transitions
-    </Typography>
-    <Box height="250px" mt="-20px">
-      {getBarChartData() ? (
-        <BarChart isDashboard={true} data={getBarChartData()} />
-      ) : (
-        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-          <Typography variant="h6" color={colors.grey[300]}>
-            Aucune donnée de transitions
-          </Typography>
-        </Box>
-      )}
-    </Box>
+  <Typography
+    variant="h5"
+    fontWeight="600"
+    sx={{ padding: "30px 30px 0 30px" }}
+  >
+    Repas par mois
+  </Typography>
+  <Box height="250px" mt="-20px">
+    {getMonthlyMealsData() ? (
+      <MonthlyMealsChart isDashboard={true} data={getMonthlyMealsData()} />
+    ) : (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+        <Typography variant="h6" color={colors.grey[300]}>
+          Aucune donnée de repas disponible
+        </Typography>
+      </Box>
+    )}
   </Box>
-          <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          padding="30px"
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ marginBottom: "15px" }}
-          >
-            Geography Based Traffic
-          </Typography>
-          <Box height="200px">
-            <GeographyChart isDashboard={true} />
-          </Box>
-        </Box>
+</Box>
+<Box
+  gridColumn="span 4"
+  gridRow="span 2"
+  backgroundColor={colors.primary[400]}
+  p="30px"
+>
+  <Typography
+    variant="h5"
+    fontWeight="600"
+    sx={{ padding: "0 0 20px 0" }}
+  >
+    Évolution du Statut Nutritionnel
+  </Typography>
+  <Box height="250px" mt="-20px">
+    {getNutritionScoreData() ? (
+      <NutritionScoreBarChart isDashboard={true} data={getNutritionScoreData()} />
+    ) : (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+        <Typography variant="h6" color={colors.grey[300]}>
+          Aucune donnée disponible
+        </Typography>
+      </Box>
+    )}
+  </Box>
+</Box>
       </Box>
     </Box>
   );
