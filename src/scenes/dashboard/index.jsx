@@ -1,7 +1,5 @@
 import { Box, Button, IconButton, Typography, useTheme, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
-import DataPreviewTable from "../../components/DataPreviewTable";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import EmailIcon from "@mui/icons-material/Email";
@@ -13,9 +11,11 @@ import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
 import GeographyChart from "../../components/GeographyChart";
 import BarChart from "../../components/BarChart";
+import MealDurationChart from "../../components/MealDurationChart";
+import GlobalScoringBarChart from "../../components/GlobalScoringBarChart";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -25,6 +25,14 @@ const Dashboard = () => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewData, setPreviewData] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [analysisData, setAnalysisData] = useState(null);
+
+  useEffect(() => {
+    if (analysisData?.scoring) {
+      console.log("Données de scoring:", analysisData.scoring);
+      console.log("Données formatées:", getScoringData());
+    }
+  }, [analysisData]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -48,32 +56,144 @@ const Dashboard = () => {
     setIsLoading(true);
     setUploadStatus("Traitement du fichier en cours...");
     setOpenPreview(false);
-
-    const formData = new FormData();
-    formData.append("csvFile", selectedFile);
-
+  
     try {
+      const formData = new FormData();
+      formData.append("csvFile", selectedFile);
+  
       const response = await fetch("http://localhost:5000/upload", {
         method: "POST",
         body: formData,
       });
-
+  
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || "Erreur lors du traitement");
+      }
+  
       const result = await response.json();
       
-      if (response.ok) {
-        setUploadStatus("Fichier traité avec succès !");
-        console.log("Données reçues:", result);
-        // C'est là qu'on peut utiliser result pour mettre à jour les graphs !
-      } else {
-        throw new Error(result.error || "Erreur lors du traitement");
+      // Validation des données reçues
+      if (!result.analysis_results?.scoring?.formatted) {
+        throw new Error("Format de réponse inattendu du serveur");
       }
+  
+      setAnalysisData({
+        transitions: result.analysis_results.transitions || [],
+        walking_speed: result.analysis_results.walking_speed || [],
+        scoring: result.analysis_results.scoring,
+        nutrition: result.analysis_results.nutrition,
+        meal_durations: result.analysis_results.meal_durations || []
+      });
+
+      console.log("Données nutrition:", result.analysis_results.nutrition);
+  
+      setUploadStatus("Analyse réussie!");
     } catch (error) {
-      setUploadStatus(`Erreur: ${error.message}`);
-      console.error("Erreur d'upload:", error);
+      console.error("Erreur complète:", error);
+      setUploadStatus(`Échec: ${error.message}`);
     } finally {
       setIsLoading(false);
-      setSelectedFile(null);
     }
+  };
+  
+  const getScoringData = () => {
+    if (!analysisData?.scoring?.raw) return null;
+  
+    return {
+      chart_data: analysisData.scoring.raw.map(item => ({
+        period: item.period,
+        // Utilisez le score cumulé des transitions OU de la vitesse
+        score: (Number(item.cumulative_score_transitions) || 0) + 
+        (Number(item.cumulative_score_speed) || 0),
+        level: item.Level || 'Inconnu',
+        interpretation: item.Interpretation || '',
+        color: item.Level === "Danger" ? colors.redAccent[500] : 
+               item.Level === "Alerte" ? colors.orangeAccent[500] : 
+               colors.greenAccent[500]
+      }))
+    };
+  };
+  
+  
+  const getLineChartData = () => {
+    if (!analysisData?.walking_speed || !Array.isArray(analysisData.walking_speed)) {
+      return null;
+    }
+  
+    return [{
+      id: "Vitesse",
+      color: colors.greenAccent[500],
+      data: analysisData.walking_speed.map(item => ({
+        x: item.period,
+        y: item.walking_speed_m_s || 0
+      }))
+    }];
+  };
+  
+  const getBarChartData = () => {
+    if (!analysisData?.transitions || !Array.isArray(analysisData.transitions)) {
+      return null;
+    }
+  
+    return {
+      keys: ["transitions"],
+      data: analysisData.transitions
+        .filter(item => item.period && item.transitions_count !== undefined)
+        .map(item => ({
+          period: item.period,
+          transitions: Number(item.transitions_count) || 0
+        }))
+    };
+  };
+
+
+  //----------------------FONCTIONS DE NUTRITIONS-----------------
+
+  const getMealDurationData = () => {
+    try {
+      if (!analysisData?.meal_durations || !Array.isArray(analysisData.meal_durations)) {
+        console.warn("Données de durée des repas manquantes");
+        return null;
+      }
+  
+      const validData = analysisData.meal_durations.filter(
+        item => item.month && !isNaN(item.avg_duration_minutes)
+      );
+  
+      if (validData.length === 0) {
+        console.warn("Aucune donnée valide pour la durée des repas");
+        return null;
+      }
+  
+      return [{
+        id: "Durée moyenne des repas",
+        color: colors.blueAccent[500],
+        data: validData.map(item => ({
+          x: item.month,
+          y: Number(item.avg_duration_minutes.toFixed(2))
+        }))
+      }];
+    } catch (error) {
+      console.error("Erreur dans getMealDurationData:", error);
+      return null;
+    }
+  };
+  
+    
+//-------------Donnnées de test------------------------------------------
+
+
+  // Modifier les données de test pour correspondre aux nouveaux niveaux
+  const testScoringData = {
+    chart_data: [
+      { period: "Jan", score: -4, level: "Danger", interpretation: "Déclin rapide" },
+      { period: "Feb", score: -2, level: "Danger", interpretation: "Déclin progressif" },
+      { period: "Mar", score: 0, level: "Alerte", interpretation: "Risque Déclin" },
+      { period: "Apr", score: 2, level: "Normal", interpretation: "Stable" },
+      { period: "May", score: 4, level: "Normal", interpretation: "Amélioration" },
+      { period: "Jun", score: 6, level: "Normal", interpretation: "Bonne progression" }
+    ]
   };
 
   const handleClosePreview = () => {
@@ -81,6 +201,7 @@ const Dashboard = () => {
     setSelectedFile(null);
     setPreviewData("");
   };
+  
   
 
   return (
@@ -106,7 +227,7 @@ const Dashboard = () => {
             ) : (
               <>
                 <UploadFileIcon sx={{ mr: "10px" }} />
-                Upload CSV
+                Telecharger dossier patient
                 <input
                   type="file"
                   accept=".csv"
@@ -287,7 +408,7 @@ const Dashboard = () => {
 
         {/* ROW 2 */}
         <Box
-          gridColumn="span 8"
+          gridColumn="span 4"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
         >
@@ -300,32 +421,82 @@ const Dashboard = () => {
           >
             <Box>
               <Typography
-                variant="h5"
+                variant="h4"
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Revenue Generated
+                Vitesse de marche
               </Typography>
               <Typography
                 variant="h3"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                $59,342.32
+                (m/s)
               </Typography>
             </Box>
-            <Box>
+{/*            <Box>
               <IconButton>
                 <DownloadOutlinedIcon
                   sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
                 />
               </IconButton>
-            </Box>
+            </Box>*/}
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} />
+          {getLineChartData() ? (
+      <LineChart isDashboard={true} data={getLineChartData()} />
+    ) : (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+        <Typography variant="h6" color={colors.grey[300]}>
+          Aucune donnée de vitesse à afficher
+        </Typography>
+    </Box>
+  )}
           </Box>
         </Box>
+        <Box
+  gridColumn="span 4"
+  gridRow="span 2"
+  backgroundColor={colors.primary[400]}
+>
+    <Typography
+      variant="h5"
+      fontWeight="600"
+      sx={{ padding: "30px 30px 0 30px" }}
+    >
+      Nombre de transitions
+    </Typography>
+    <Box height="250px" mt="-20px">
+      {getBarChartData() ? (
+        <BarChart isDashboard={true} data={getBarChartData()} />
+      ) : (
+        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+          <Typography variant="h6" color={colors.grey[300]}>
+            Aucune donnée de transitions
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  </Box>
+
+        <Box
+          gridColumn="span 4"
+          gridRow="span 2"
+          backgroundColor={colors.primary[400]}
+          p="30px"
+        >
+          <Typography variant="h5" fontWeight="600">
+            Score Global Mobilité
+          </Typography>
+          <Box height="250px" mt="-20px">
+            <GlobalScoringBarChart 
+              isDashboard={true}
+              data={getScoringData()} 
+            />
+          </Box>
+        </Box>
+        {/* Exemple de composant à scroll bar on ne sait jamais
         <Box
           gridColumn="span 4"
           gridRow="span 2"
@@ -375,52 +546,75 @@ const Dashboard = () => {
               </Box>
             </Box>
           ))}
-        </Box>
+        </Box>*/}
 
         {/* ROW 3 */}
         <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          p="30px"
-        >
-          <Typography variant="h5" fontWeight="600">
-            Campaign
+  gridColumn="span 4"
+  gridRow="span 2"
+  backgroundColor={colors.primary[400]}
+>
+  <Box
+    mt="25px"
+    p="0 30px"
+    display="flex"
+    justifyContent="space-between"
+    alignItems="center"
+  >
+    <Box>
+      <Typography
+        variant="h4"
+        fontWeight="600"
+        color={colors.grey[100]}
+      >
+        Durée moyenne des repas
+      </Typography>
+      <Typography
+                variant="h3"
+                fontWeight="bold"
+                color={colors.greenAccent[500]}
+              >
+                (min)
+              </Typography>
+    </Box>
+  </Box>
+  <Box height="250px" m="-20px 0 0 0">
+    {getMealDurationData() ? (
+      <MealDurationChart isDashboard={true} data={getMealDurationData()} />
+    ) : (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+        <Typography variant="h6" color={colors.grey[300]}>
+          Aucune donnée nutritionnelle
+        </Typography>
+      </Box>
+    )}
+  </Box>
+</Box>
+        <Box
+  gridColumn="span 4"
+  gridRow="span 2"
+  backgroundColor={colors.primary[400]}
+>
+    <Typography
+      variant="h5"
+      fontWeight="600"
+      sx={{ padding: "30px 30px 0 30px" }}
+    >
+      Nombre de transitions
+    </Typography>
+    <Box height="250px" mt="-20px">
+      {getBarChartData() ? (
+        <BarChart isDashboard={true} data={getBarChartData()} />
+      ) : (
+        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+          <Typography variant="h6" color={colors.grey[300]}>
+            Aucune donnée de transitions
           </Typography>
+        </Box>
+      )}
+    </Box>
+  </Box>
           <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            mt="25px"
-          >
-            <ProgressCircle size="125" />
-            <Typography
-              variant="h5"
-              color={colors.greenAccent[500]}
-              sx={{ mt: "15px" }}
-            >
-              $48,352 revenue generated
-            </Typography>
-            <Typography>Includes extra misc expenditures and costs</Typography>
-          </Box>
-        </Box>
-        <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ padding: "30px 30px 0 30px" }}
-          >
-            Sales Quantity
-          </Typography>
-          <Box height="250px" mt="-20px">
-            <BarChart isDashboard={true} />
-          </Box>
-        </Box>
-        <Box
           gridColumn="span 4"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}

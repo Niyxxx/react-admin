@@ -60,6 +60,17 @@ export const tokens = (mode) => ({
           800: "#2a2d64",
           900: "#151632",
         },
+        orangeAccent: {
+          100: "#fdf0db",
+          200: "#fbe1b7",
+          300: "#f9d192",
+          400: "#f7c26e",
+          500: "#f5b34a",
+          600: "#c48f3b",
+          700: "#936b2c",
+          800: "#62481e",
+          900: "#31240f",
+        },
       }
     : {
         grey: {
@@ -117,9 +128,19 @@ export const tokens = (mode) => ({
           800: "#c3c6fd",
           900: "#e1e2fe",
         },
+        orangeAccent: {
+          100: "#31240f",
+          200: "#62481e",
+          300: "#936b2c",
+          400: "#c48f3b",
+          500: "#f5b34a",
+          600: "#f7c26e",
+          700: "#f9d192",
+          800: "#fbe1b7",
+          900: "#fdf0db",
+        },
       }),
 });
-
 // mui theme settings
 export const themeSettings = (mode) => {
   const colors = tokens(mode);

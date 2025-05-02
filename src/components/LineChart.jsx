@@ -1,9 +1,8 @@
 import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
-import { mockLineData as data } from "../data/mockData";
 
-const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
+const LineChart = ({ isCustomLineColors = false, isDashboard = false, data }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -51,7 +50,6 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         min: "auto",
         max: "auto",
         stacked: true,
-        reverse: false,
       }}
       yFormat=" >-.2f"
       curve="catmullRom"
@@ -61,19 +59,20 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         orient: "bottom",
         tickSize: 0,
         tickPadding: 5,
-        tickRotation: 0,
+        tickRotation: -45,
         legend: isDashboard ? undefined : "transportation", // added
         legendOffset: 36,
         legendPosition: "middle",
       }}
       axisLeft={{
+        legend: isDashboard ? undefined : 'Vitesse (m/s)',
+        legendOffset: -40,
         orient: "left",
         tickValues: 5, // added
         tickSize: 3,
         tickPadding: 5,
         tickRotation: 0,
         legend: isDashboard ? undefined : "count", // added
-        legendOffset: -40,
         legendPosition: "middle",
       }}
       enableGridX={false}
@@ -103,8 +102,7 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
             {
               on: "hover",
               style: {
-                itemBackground: "rgba(0, 0, 0, .03)",
-                itemOpacity: 1,
+                itemOpacity: 1
               },
             },
           ],
