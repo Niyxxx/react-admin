@@ -99,7 +99,7 @@ const MobilityScoreBarChart = ({ isDashboard = false, data }) => {
           borderRadius: '4px'
         }}>
           <strong>{indexValue}</strong>
-          <div>Statut: {data.level}</div>
+          {/*<div>Statut: {data.level}</div>*/}
           <div>Interprétation: {data.interpretation}</div>
         </div>
       )}

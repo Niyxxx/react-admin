@@ -40,7 +40,7 @@ const Dashboard = () => {
 
     setSelectedFile(file);
 
-    // Lire le fichier pour prévisualisation
+    //Prévisu du csv
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target.result;
@@ -58,6 +58,8 @@ const Dashboard = () => {
     setOpenPreview(false);
   
     try {
+      const patientNumber = selectedFile.name.match(/_(\d+)\.csv$/)?.[1] || "Inconnu";
+
       const formData = new FormData();
       formData.append("csvFile", selectedFile);
   
@@ -72,6 +74,7 @@ const Dashboard = () => {
       }
   
       const result = await response.json();
+      console.log("test : ",result);
       
       // Validation des données reçues
       if (!result.analysis_results?.scoring?.formatted) {
@@ -79,6 +82,7 @@ const Dashboard = () => {
       }
   
       setAnalysisData({
+        patientNumber,
         transitions: result.analysis_results.transitions || [],
         walking_speed: result.analysis_results.walking_speed || [],
         scoring: result.analysis_results.scoring,
@@ -99,8 +103,87 @@ const Dashboard = () => {
     }
   };
   
+  const getDaysCount = () => {
+    if (!analysisData?.walking_speed || !Array.isArray(analysisData.walking_speed)) {
+      return "N/A";
+    }
+    const dates = analysisData.walking_speed.map(item => new Date(item.period));
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+    
+    // Calculer le delta jours
+    const diffTime = Math.abs(maxDate - minDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 pour inclure le premier jour
+    
+    return diffDays;
+  };
+  
+  const getCurrentMobilityStatus = () => {
+    if (!analysisData?.scoring?.raw || !Array.isArray(analysisData.scoring.raw)) {
+      return { status: "N/A", color: colors.grey[500] };
+    }
+    
+    const lastRecord = analysisData.scoring.raw[analysisData.scoring.raw.length - 1];
+    
+    if (!lastRecord) {
+      return { status: "N/A", color: colors.grey[500] };
+    }
+    
+    let color;
+    switch(lastRecord.Level) {
+      case "Danger":
+        color = colors.redAccent[500];
+        break;
+      case "Alerte":
+        color = colors.orangeAccent[500];
+        break;
+      case "Normal":
+        color = colors.greenAccent[500];
+        break;
+      default:
+        color = colors.grey[500];
+    }
+    
+    return {
+      status: lastRecord.Interpretation || lastRecord.Level || "N/A",
+      color
+    };
+  };
 
-  {/*Scoring de mobilité à modifié*/}
+  const getCurrentNutritionStatus = () => {
+    if (!analysisData?.nutrition_scores || !Array.isArray(analysisData.nutrition_scores)) {
+      return { status: "N/A", color: colors.grey[500] };
+    }
+    
+    // Prendre le dernier enregistrement
+    const lastRecord = analysisData.nutrition_scores[analysisData.nutrition_scores.length - 1];
+    
+    if (!lastRecord) {
+      return { status: "N/A", color: colors.grey[500] };
+    }
+    
+    let color;
+    switch(lastRecord.classification) {
+      case "Danger":
+        color = colors.redAccent[500];
+        break;
+      case "Alerte":
+        color = colors.orangeAccent[500];
+        break;
+      case "Normal":
+        color = colors.greenAccent[500];
+        break;
+      default:
+        color = colors.grey[500];
+    }
+    
+    return {
+      status: lastRecord.interpretation || lastRecord.classification || "N/A",
+      color
+    };
+  };
+
+  {/*--------FONCTION DE MOBILITEES-----------*/}
 
   const getMobilityScoreData = () => {
     if (!analysisData?.scoring?.raw || !Array.isArray(analysisData.scoring.raw)) {
@@ -169,7 +252,7 @@ const Dashboard = () => {
       }
   
       return [{
-        id: "Durée moyenne des repas",
+        id: "Durée Moy",
         color: colors.blueAccent[500],
         data: validData.map(item => ({
           x: item.month,
@@ -234,7 +317,7 @@ const Dashboard = () => {
     <Box m="20px">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
+        <Header title="TABLEAU DE BORD" subtitle="bienvenue au tableau de bord" />
 
         <Box display="flex" gap="10px">
           <Button
@@ -274,7 +357,7 @@ const Dashboard = () => {
             }}
           >
             <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-            Download Reports
+            Telechager Raport
           </Button>
         </Box>
       </Box>
@@ -363,48 +446,10 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="12,361"
-            subtitle="Emails Sent"
-            progress="0.75"
-            increase="+14%"
-            icon={
-              <EmailIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title="431,225"
-            subtitle="Sales Obtained"
-            progress="0.50"
-            increase="+21%"
-            icon={
-              <PointOfSaleIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title="32,441"
-            subtitle="New Clients"
-            progress="0.30"
-            increase="+5%"
+            title="HOMEID CART-FRANCE"
+            subtitle=""
+            progress=""
+            increase={analysisData?.patientNumber || "N/A"}
             icon={
               <PersonAddIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -420,15 +465,56 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="1,325,134"
-            subtitle="Traffic Received"
-            progress="0.80"
-            increase="+43%"
+            title="Jours de suivi disponibles"
+            subtitle=""
+            progress=""
+            increase={getDaysCount()}
             icon={
-              <TrafficIcon
+              <PointOfSaleIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
+          />
+        </Box>
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <StatBox
+            title="Statut de Mobilité Actuel"
+            subtitle=""
+            progress=""
+            increase={getCurrentMobilityStatus().status}
+            icon={
+              <TrafficIcon
+                sx={{ color: getCurrentMobilityStatus().color,
+                   fontSize: "26px" }}
+              />
+            }
+            textColor={getCurrentMobilityStatus().color}
+          />
+        </Box>
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <StatBox
+            title="Statut Nutritionnel Actuel"
+            subtitle=""
+            progress=""
+            increase={getCurrentNutritionStatus().status}
+            icon={
+              <TrafficIcon
+                sx={{ color: getCurrentNutritionStatus().color}}
+              />
+            }
+            textColor={getCurrentNutritionStatus().color}
           />
         </Box>
 
@@ -447,11 +533,11 @@ const Dashboard = () => {
           >
             <Box>
               <Typography
-                variant="h4"
+                variant="h5"
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Vitesse de marche
+                Vitesse de marche mensuelle
               </Typography>
               <Typography
                 variant="h4"
@@ -491,7 +577,7 @@ const Dashboard = () => {
       fontWeight="600"
       sx={{ padding: "30px 30px 0 30px" }}
     >
-      Nombre de transitions
+      Moyenne de transitions par mois
     </Typography>
     <Box height="250px" mt="-20px">
       {getBarChartData() ? (
@@ -602,7 +688,7 @@ const Dashboard = () => {
         fontWeight="600"
         color={colors.grey[100]}
       >
-        Durée moyenne des repas
+        Durée moyenne mensuelle des repas
       </Typography>
       <Typography
                 variant="h5"
@@ -635,7 +721,7 @@ const Dashboard = () => {
     fontWeight="600"
     sx={{ padding: "30px 30px 0 30px" }}
   >
-    Repas par mois
+    Moyenne de repas par mois
   </Typography>
   <Box height="250px" mt="-20px">
     {getMonthlyMealsData() ? (

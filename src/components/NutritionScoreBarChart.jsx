@@ -18,13 +18,14 @@ const NutritionScoreBarChart = ({ isDashboard = false, data }) => {
 
   const chartData = data.data.map(item => ({
     month: item.month_start,
-    value: 1,
+    value: item.classification === 'InsufficientData' ? 0 : 1,
     classification: item.classification,
-    interpretation: item.interpretation || "Non spécifié", // Nouveau champ
+    interpretation: item.interpretation || "Non spécifié",
     color: item.classification === 'Normal' ? colors.greenAccent[500] :
            item.classification === 'Alerte' ? colors.orangeAccent[500] :
+           item.classification === 'InsufficientData' ? colors.grey[500] :
            colors.redAccent[500]
-  }));
+}));
 
   return (
     <ResponsiveBar
@@ -122,7 +123,7 @@ const NutritionScoreBarChart = ({ isDashboard = false, data }) => {
           borderRadius: '4px'
         }}>
           <strong>{indexValue}</strong>
-          <div>Statut: {data.classification}</div>
+          {/*<div>Statut: {data.classification}</div>*/}
 
           <div>Interprétation: {data.interpretation}</div>
         </div>

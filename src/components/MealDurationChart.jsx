@@ -76,7 +76,7 @@ const MealDurationChart = ({ isDashboard = false, data }) => {
           legendPosition: "middle",
         }}
         enableGridX={false}
-        enableGridY={true}
+        enableGridY={false}
         pointSize={8}
         pointColor={{ theme: "background" }}
         pointBorderWidth={2}
