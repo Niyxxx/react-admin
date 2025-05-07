@@ -11,39 +11,39 @@ const MealDurationChart = ({ isDashboard = false, data }) => {
     return (
       <ResponsiveLine
         data={data}
-        theme={{
-            axis: {
-              domain: {
-                line: {
-                  stroke: colors.grey[100],
-                },
-              },
-              legend: {
-                text: {
-                  fill: colors.grey[100],
-                },
-              },
-              ticks: {
-                line: {
-                  stroke: colors.grey[100],
-                  strokeWidth: 1,
-                },
-                text: {
-                  fill: colors.grey[100],
-                },
-              },
+      theme={{
+        axis: {
+          domain: {
+            line: {
+              stroke: colors.grey[100],
             },
-            legends: {
-              text: {
-                fill: colors.grey[100],
-              },
+          },
+          legend: {
+            text: {
+              fill: colors.grey[100],
             },
-            tooltip: {
-              container: {
-                color: colors.primary[500],
-              },
+          },
+          ticks: {
+            line: {
+              stroke: colors.grey[100],
+              strokeWidth: 1,
             },
-          }}
+            text: {
+              fill: colors.grey[100],
+            },
+          },
+        },
+        legends: {
+          text: {
+            fill: colors.grey[100],
+          },
+        },
+        tooltip: {
+          container: {
+            color: colors.primary[500],
+          },
+        },
+      }}
         colors={{ datum: "color" }}
         margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
         xScale={{ type: "point" }}
@@ -83,19 +83,6 @@ const MealDurationChart = ({ isDashboard = false, data }) => {
         pointBorderColor={{ from: "serieColor" }}
         pointLabelYOffset={-12}
         useMesh={true}
-        tooltip={({ point }) => (
-          <div
-            style={{
-              background: colors.primary[400],
-              padding: '10px',
-              border: `1px solid ${colors.primary[100]}`,
-              borderRadius: '4px'
-            }}
-          >
-            <div>Mois: <strong>{point.data.xFormatted}</strong></div>
-            <div>Durée Moy: <strong>{point.data.yFormatted} min</strong></div>
-          </div>
-        )}
         legends={[
           {
             anchor: "bottom-right",

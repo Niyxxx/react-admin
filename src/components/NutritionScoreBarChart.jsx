@@ -70,7 +70,7 @@ const NutritionScoreBarChart = ({ isDashboard = false, data }) => {
       padding={0.3}
       valueScale={{ type: "linear", min: 0, max: 1 }}
       indexScale={{ type: "band", round: true }}
-      colors={({ data }) => data.color} // Couleur dynamique selon classification
+      colors={({ data }) => data.color}
       defs={[
         {
           id: "dots",

@@ -218,19 +218,19 @@ const Dashboard = () => {
   
   const getBarChartData = () => {
     if (!analysisData?.transitions || !Array.isArray(analysisData.transitions)) {
-      return null;
+        return null;
     }
-  
+
     return {
-      keys: ["transitions"],
-      data: analysisData.transitions
-        .filter(item => item.period && item.transitions_count !== undefined)
-        .map(item => ({
-          period: item.period,
-          transitions: Number(item.transitions_count) || 0
-        }))
+        keys: ["transitions"],
+        data: analysisData.transitions
+            .filter(item => item.period && item.daily_avg_transitions !== undefined)
+            .map(item => ({
+                period: item.period,
+                transitions: Number(item.daily_avg_transitions.toFixed(2)) || 0
+            }))
     };
-  };
+};
 
 
   //----------------------FONCTIONS DE NUTRITIONS-----------------
@@ -268,19 +268,19 @@ const Dashboard = () => {
   
   const getMonthlyMealsData = () => {
     if (!analysisData?.monthly_meals || !Array.isArray(analysisData.monthly_meals)) {
-      return null;
+        return null;
     }
-  
+
     return {
-      keys: ["meals"],
-      data: analysisData.monthly_meals
-        .filter(item => item.month && item.meals_count !== undefined)
-        .map(item => ({
-          month: item.month,
-          meals: Number(item.meals_count) || 0
-        }))
+        keys: ["meals"],
+        data: analysisData.monthly_meals
+            .filter(item => item.month && item.daily_avg_meals !== undefined)
+            .map(item => ({
+                month: item.month,
+                meals: Number(item.daily_avg_meals.toFixed(2)) || 0
+            }))
     };
-  };
+};
 
   const getNutritionScoreData = () => {
     if (!analysisData?.nutrition_scores || !Array.isArray(analysisData.nutrition_scores)) {
@@ -452,9 +452,10 @@ const Dashboard = () => {
             increase={analysisData?.patientNumber || "N/A"}
             icon={
               <PersonAddIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+                sx={{ color: colors.grey[100], fontSize: "26px" }}
               />
             }
+            textColor={colors.grey[100]}
           />
         </Box>
         <Box
@@ -471,9 +472,10 @@ const Dashboard = () => {
             increase={getDaysCount()}
             icon={
               <PointOfSaleIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+                sx={{ color: colors.grey[100], fontSize: "26px" }}
               />
             }
+            textColor={colors.grey[100]}
           />
         </Box>
         <Box
@@ -484,7 +486,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="Statut de Mobilité Actuel"
+            title="Etat de Mobilité Actuel"
             subtitle=""
             progress=""
             increase={getCurrentMobilityStatus().status}
@@ -505,7 +507,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="Statut Nutritionnel Actuel"
+            title="Etat Nutritionnel Actuel"
             subtitle=""
             progress=""
             increase={getCurrentNutritionStatus().status}
@@ -577,7 +579,7 @@ const Dashboard = () => {
       fontWeight="600"
       sx={{ padding: "30px 30px 0 30px" }}
     >
-      Moyenne de transitions par mois
+      Nombre moyen de transitions mensuel
     </Typography>
     <Box height="250px" mt="-20px">
       {getBarChartData() ? (
@@ -721,7 +723,7 @@ const Dashboard = () => {
     fontWeight="600"
     sx={{ padding: "30px 30px 0 30px" }}
   >
-    Moyenne de repas par mois
+    Nombre moyen de repas par jour pour chaque mois
   </Typography>
   <Box height="250px" mt="-20px">
     {getMonthlyMealsData() ? (

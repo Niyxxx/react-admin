@@ -97,11 +97,12 @@ const MonthlyMealsChart = ({ isDashboard = false, data }) => {
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : 'Nombre de repas',
+        legend: isDashboard ? undefined : 'Moyenne journalière de repas',
         legendPosition: "middle",
         legendOffset: -40,
-      }}
+    }}
       enableLabel={false}
+      enableGridY={false}
       labelSkipWidth={12}
       labelSkipHeight={12}
       labelTextColor={{

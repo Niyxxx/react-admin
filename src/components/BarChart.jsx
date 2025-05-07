@@ -97,11 +97,12 @@ const BarChart = ({ isDashboard = false, data }) => {
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : 'Nombre',
+        legend: isDashboard ? undefined : 'Moyenne journalière',
         legendPosition: "middle",
         legendOffset: -40,
-      }}
+        }}
       enableLabel={false}
+      enableGridY={false}
       labelSkipWidth={12}
       labelSkipHeight={12}
       labelTextColor={{
