@@ -118,7 +118,7 @@ const Sidebar = () => {
 
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
-              title="Dashboard"
+              title="Tableau de bord"
               to="/"
               icon={<HomeOutlinedIcon />}
               selected={selected}
@@ -130,24 +130,24 @@ const Sidebar = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Data
+              Equipe
             </Typography>
             <Item
-              title="Manage Team"
+              title="Gérer l'équipe"
               to="/team"
               icon={<PeopleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Contacts Information"
+              title="Informations Contact"
               to="/contacts"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Invoices Balances"
+              title="Liste des patients"
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
@@ -188,10 +188,10 @@ const Sidebar = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Charts
+              Graphs
             </Typography>
             <Item
-              title="Bar Chart"
+              title="Histogrammes"
               to="/bar"
               icon={<BarChartOutlinedIcon />}
               selected={selected}
@@ -205,19 +205,19 @@ const Sidebar = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Line Chart"
+              title="Graphiques Linéaires"
               to="/line"
               icon={<TimelineOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
-            <Item
+{/*            <Item
               title="Geography Chart"
               to="/geography"
               icon={<MapOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            />*/}
           </Box>
         </Menu>
       </ProSidebar>

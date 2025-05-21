@@ -34,6 +34,24 @@ const Dashboard = () => {
     }
   }, [analysisData]);
 
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('analysisData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setAnalysisData(parsedData);
+        
+        if (!parsedData.patientNumber) {
+          const patientNum = savedData.match(/_(\d+)\.csv$/)?.[1] || "Inconnu";
+          setAnalysisData(prev => ({ ...prev, patientNumber: patientNum }));
+        }
+      } catch (error) {
+        console.error("Erreur lors de la lecture des données sauvegardées:", error);
+        sessionStorage.removeItem('analysisData');
+      }
+    }
+  }, []);
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -92,6 +110,17 @@ const Dashboard = () => {
         nutrition_scores: result.analysis_results.nutrition?.raw || [] 
       });
 
+      sessionStorage.setItem('analysisData', JSON.stringify({
+        patientNumber,
+        transitions: result.analysis_results.transitions || [],
+        walking_speed: result.analysis_results.walking_speed || [],
+        scoring: result.analysis_results.scoring,
+        nutrition: result.analysis_results.nutrition,
+        meal_durations: result.analysis_results.meal_durations || [],
+        monthly_meals: result.analysis_results.monthly_meals || [],
+        nutrition_scores: result.analysis_results.nutrition?.raw || [] 
+      }));
+
       console.log("Données nutrition:", result.analysis_results.nutrition);
   
       setUploadStatus("Analyse réussie!");
@@ -101,6 +130,13 @@ const Dashboard = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNewUpload = () => {
+    sessionStorage.removeItem('analysisData');
+    setSelectedFile(null);
+    setAnalysisData(null);
+    setUploadStatus("");
   };
   
   const getDaysCount = () => {
@@ -317,7 +353,7 @@ const Dashboard = () => {
     <Box m="20px">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="TABLEAU DE BORD" subtitle="bienvenue au tableau de bord" />
+        <Header title="TABLEAU DE BORD" subtitle="Bienvenue au tableau de bord" />
 
         <Box display="flex" gap="10px">
           <Button
@@ -336,7 +372,7 @@ const Dashboard = () => {
             ) : (
               <>
                 <UploadFileIcon sx={{ mr: "10px" }} />
-                Telecharger dossier patient
+                Televerser dossier patient
                 <input
                   type="file"
                   accept=".csv"
@@ -356,8 +392,8 @@ const Dashboard = () => {
               padding: "10px 20px",
             }}
           >
-            <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-            Telechager Raport
+            <UploadFileIcon sx={{ mr: "10px" }} />
+            Rédiger Le Rapport
           </Button>
         </Box>
       </Box>
@@ -539,7 +575,7 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Vitesse de marche mensuelle
+                Vitesse de marche moyenne mensuelle
               </Typography>
               <Typography
                 variant="h4"
@@ -605,7 +641,7 @@ const Dashboard = () => {
     fontWeight="600"
     sx={{ padding: "0 0 20px 0" }}
   >
-    Évaluation de la Mobilité
+    Évolution de la Mobilité
   </Typography>
   <Box height="250px" mt="-20px">
     {getMobilityScoreData() ? (
