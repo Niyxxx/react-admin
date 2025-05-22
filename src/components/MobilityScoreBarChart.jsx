@@ -60,7 +60,7 @@ const MobilityScoreBarChart = ({ isDashboard = false, data }) => {
         tooltip: {
           container: {
             color: colors.primary[500],
-            background: colors.primary[700],
+            background: colors.primary[400],
           },
         },
       }}
@@ -92,8 +92,8 @@ const MobilityScoreBarChart = ({ isDashboard = false, data }) => {
       labelSkipHeight={12}
       tooltip={({ indexValue, data }) => (
         <div style={{
+          background: colors.primary[400],
           padding: '12px',
-          background: colors.primary[700],
           color: colors.grey[100],
           borderLeft: `5px solid ${data.color}`,
           borderRadius: '4px'

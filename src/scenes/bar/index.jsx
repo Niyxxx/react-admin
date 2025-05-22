@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import BarChart from "../../components/BarChart";
@@ -79,6 +79,7 @@ const Bar = () => {
           <MonthlyMealsChart isDashboard={false} data={getMonthlyMealsData()} />
         </Box>
       </Box>
+
     </Box>
   );
 };

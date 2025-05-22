@@ -643,6 +643,7 @@ const Dashboard = () => {
   >
     Évolution de la Mobilité
   </Typography>
+  
   <Box height="250px" mt="-20px">
     {getMobilityScoreData() ? (
       <MobilityScoreBarChart isDashboard={true} data={getMobilityScoreData()} />
@@ -654,6 +655,7 @@ const Dashboard = () => {
       </Box>
     )}
   </Box>
+  
 </Box>
         {/* Exemple de composant à scroll bar on ne sait jamais
         <Box

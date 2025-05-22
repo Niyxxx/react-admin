@@ -1,13 +1,16 @@
 import { Box } from "@mui/material";
 import Header from "../../components/Header";
-import PieChart from "../../components/PieChart";
+import CumulativeScoresLineChart from "../../components/CumulativeScoresLineChart";
 
 const Pie = () => {
   return (
     <Box m="20px">
-      <Header title="Pie Chart" subtitle="Simple Pie Chart" />
+      <Header 
+        title="Scores Cumulatifs" 
+        subtitle="Évolution des scores cumulatifs de vitesse et transitions" 
+      />
       <Box height="75vh">
-        <PieChart />
+        <CumulativeScoresLineChart />
       </Box>
     </Box>
   );
