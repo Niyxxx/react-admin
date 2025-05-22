@@ -109,7 +109,7 @@ const MonthlyMealsChart = ({ isDashboard = false, data }) => {
         from: "color",
         modifiers: [["darker", 1.6]],
       }}
-      legends={[
+      /*legends={[
         {
           dataFrom: "keys",
           anchor: "bottom-right",
@@ -133,7 +133,7 @@ const MonthlyMealsChart = ({ isDashboard = false, data }) => {
             },
           ],
         },
-      ]}
+      ]}*/
       role="application"
       barAriaLabel={function (e) {
         return e.id + ": " + e.formattedValue + " repas en " + e.indexValue;

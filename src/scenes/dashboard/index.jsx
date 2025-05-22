@@ -219,7 +219,7 @@ const Dashboard = () => {
     };
   };
 
-  {/*--------FONCTION DE MOBILITEES-----------*/}
+  /*--------FONCTION DE MOBILITEES-----------*/
 
   const getMobilityScoreData = () => {
     if (!analysisData?.scoring?.raw || !Array.isArray(analysisData.scoring.raw)) {
@@ -337,9 +337,6 @@ const Dashboard = () => {
     };
   };
     
-//-------------Donnnées de test------------------------------------------
-
-
 
   const handleClosePreview = () => {
     setOpenPreview(false);
@@ -731,7 +728,7 @@ const Dashboard = () => {
         Durée moyenne mensuelle des repas
       </Typography>
       <Typography
-                variant="h5"
+                variant="h4"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
